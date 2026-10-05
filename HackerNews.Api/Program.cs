@@ -1,12 +1,40 @@
+using HackerNews.Api.Configuration;
+using HackerNews.Api.Endpoints;
+using HackerNews.Api.HackerNews;
+using HackerNews.Api.Stories;
+using Microsoft.Extensions.Options;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.Configure<HackerNewsOptions>(
+    builder.Configuration.GetSection(HackerNewsOptions.SectionName));
+
+builder.Services.AddHttpClient<IHackerNewsClient, HackerNewsClient>((serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<IOptions<HackerNewsOptions>>().Value;
+    client.BaseAddress = new Uri(options.BaseUrl);
+    client.Timeout = options.RequestTimeout;
+})
+.ConfigurePrimaryHttpMessageHandler(serviceProvider =>
+{
+    var options = serviceProvider.GetRequiredService<IOptions<HackerNewsOptions>>().Value;
+    // Second barrier against ephemeral port exhaustion, on top of IHttpClientFactory's pooling.
+    return new SocketsHttpHandler
+    {
+        MaxConnectionsPerServer = options.MaxConnectionsPerServer
+    };
+});
+
+// Registered under both types: the refresher needs the concrete class to replace the
+// snapshot, the endpoint only needs the read-only interface.
+builder.Services.AddSingleton<BestStoriesProvider>();
+builder.Services.AddSingleton<IBestStoriesProvider>(sp => sp.GetRequiredService<BestStoriesProvider>());
+builder.Services.AddHostedService<BestStoriesRefresher>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -14,28 +42,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapStoriesEndpoints();
 
 app.Run();
-
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
