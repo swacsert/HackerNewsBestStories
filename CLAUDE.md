@@ -5,9 +5,8 @@
 Una API REST en **ASP.NET Core sobre .NET 10** que devuelve las mejores `n` historias de
 Hacker News ordenadas por puntuación descendente, donde `n` lo indica quien llama a la API.
 
-Es una **prueba técnica** para un proceso de selección. Se entrega como **repositorio público**
-con un `README.md`. El código lo tengo que poder **defender línea a línea en una entrevista**,
-así que no quiero nada que no entienda ni nada más complejo de lo necesario.
+Se entrega como repositorio público con un README.md. Prioridad a
+la simplicidad: nada más complejo de lo que el problema necesita.
 
 ## Fuentes de datos (Hacker News)
 
@@ -209,8 +208,8 @@ contrato, cliente, mapeador, proveedor, refrescador, endpoint, tests, docker.
 # Cómo trabajamos
 
 - **Una pieza cada vez.** Escribe un fichero o un par relacionados, y para.
-- Después de cada pieza, **explícame en dos o tres frases las decisiones** que has tomado
-  y qué me podrían preguntar de ahí en una entrevista.
+- Después de cada pieza, resume en dos o tres frases las decisiones
+  que has tomado y por qué.
 - **Si algo es ambiguo, pregúntame antes de decidir.** No des nada por supuesto.
 - Si crees que alguna decisión de arriba es mala, **dímelo y discutámoslo** — pero no la cambies
   por tu cuenta.
