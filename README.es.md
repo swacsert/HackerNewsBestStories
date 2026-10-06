@@ -25,6 +25,8 @@ dotnet run --project HackerNews.Api
 La consola escribe la URL en la que está escuchando (también está en
 `HackerNews.Api/Properties/launchSettings.json`).
 
+El perfil por defecto escucha en http://localhost:5283.
+
 **Tests:**
 ```
 dotnet test
@@ -60,9 +62,9 @@ Algunas decisiones que se derivan de eso:
 - **Un `HttpClient` tipado a través de `IHttpClientFactory`**, con un tope de conexiones por
   servidor: los manejadores se reutilizan y rotan en vez de crear sockets por llamada.
 - **El arranque en frío está tratado explícitamente.** Antes de que termine el primer refresco, la
-  API devuelve `503` con cabecera `Retry-After` en lugar de bloquearse o devolver una lista vacía.
-  Un semáforo con doble comprobación garantiza que una ráfaga de peticiones en esa ventana dispare
-  una sola carga, no muchas.
+  API devuelve `503` con cabecera `Retry-After` en lugar de bloquearse o lanzar una carga desde la
+  petición. La carga inicial está protegida por un semáforo con doble comprobación para que no
+  pueda duplicarse — es defensivo, porque hoy el refrescador es su único llamante.
 
 ### Estructura del proyecto
 

@@ -23,8 +23,10 @@ dotnet run --project HackerNews.Api
 
 The console prints the URL it is listening on (also in `HackerNews.Api/Properties/launchSettings.json`).
 
+The default profile listens on http://localhost:5283.
+
 ```bash
-curl "https://localhost:5283/stories?n=3"
+curl "http://localhost:5283/stories?n=3"
 ```
 
 ```json
@@ -74,8 +76,9 @@ A few decisions that follow from that:
 - **A typed `HttpClient` via `IHttpClientFactory`**, with a cap on connections per server — handlers
   are pooled and rotated instead of creating sockets per call.
 - **Cold start is handled explicitly.** Before the first refresh completes, the API returns `503`
-  with a `Retry-After` header rather than blocking or returning an empty list. A semaphore with a
-  double check ensures that a burst of requests during that window triggers one load, not many.
+  with a `Retry-After` header rather than blocking or triggering a fetch from the request path. The
+  initial load is guarded by a semaphore with a double check so it cannot be duplicated —
+  defensive, since today the refresher is its only caller.
 
 ### Project layout
 
